@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="ro" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AquaBloom — Happier Plants | Green Nest</title>
+  <meta name="description" content="Sistem inteligent de monitorizare a umidității solului și de irigare automată a plantelor de interior, dezvoltat de Green Nest." />
+
+  <!-- Google Fonts: Cinzel (Titluri elegante), Fredoka (Logo Hero rotunjit), Plus Jakarta Sans & Space Mono (Text & Tech) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Fredoka:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: {
+              DEFAULT: '#F4EDE4',
+              dark: '#EFE6DA',
+              card: '#FAF6F0',
+              border: '#DFD4C5',
+            },
+            forest: {
+              DEFAULT: '#33451E',
+              dark: '#263416',
+              light: '#435829',
+            },
+            sage: {
+              DEFAULT: '#7B885A',
+              dark: '#667348',
+              light: '#98A477',
+              pale: '#C5C4A2',
+            },
+            sand: {
+              DEFAULT: '#D6C9B4',
+              dark: '#C8B9A3',
+            },
+            ink: {
+              DEFAULT: '#2B3024',
+              muted: '#4A5240',
+            }
+          },
+          fontFamily: {
+            serif: ['"Cinzel"', 'Georgia', 'serif'],
+            hero: ['"Fredoka"', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"Space Mono"', 'monospace'],
+          },
+          boxShadow: {
+            'botanical': '0 18px 40px -15px rgba(51, 69, 30, 0.14)',
+            'phone': '0 25px 50px -12px rgba(38, 52, 22, 0.28)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Stiluri personalizate pentru detalii organice, animații și elemente interactive */
+    body {
+      background-color: #F4EDE4;
+      color: #2B3024;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Textură subtilă de perete cald / hârtie organică în fundalul Hero */
+    .hero-room-gradient {
+      background: linear-gradient(115deg, #EAE2D6 0%, #F4EDE4 48%, #EFE5D8 100%);
+    }
+
+    /* Podea stilizată discretă ca în Slide 1 */
+    .hero-floor {
+      background: repeating-linear-gradient(
+        90deg,
+        #E6DDD0 0px,
+        #E6DDD0 48px,
+        #DDD2C3 49px,
+        #E6DDD0 50px
+      );
+      border-top: 2px solid #E2D7C8;
+    }
+
+    /* Animații Reveal la Scroll */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1), transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Animație plutire lentă pentru badge și frunze */
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-7px) rotate(1.5deg); }
+    }
+    .animate-float {
+      animation: gentleFloat 5s ease-in-out infinite;
+    }
+
+    /* Animație puls pentru hotspot-urile schemei tehnice */
+    @keyframes hotspotPulse {
+      0% { box-shadow: 0 0 0 0 rgba(51, 69, 30, 0.55); }
+      70% { box-shadow: 0 0 0 12px rgba(51, 69, 30, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(51, 69, 30, 0); }
+    }
+    .hotspot-btn {
+      animation: hotspotPulse 2.4s infinite;
+    }
+
+    /* Custom Range Slider pentru simulatorul aplicației */
+    input[type="range"].aqua-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      background: #DFD4C5;
+      height: 6px;
+      border-radius: 999px;
+    }
+    input[type="range"].aqua-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #33451E;
+      cursor: pointer;
+      border: 2px solid #FAF6F0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    /* Bare grafic animate */
+    .chart-bar-fill {
+      width: 0%;
+      transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-forest selection:text-cream">
+
+  <!-- ==================== NAVBAR STICKY ==================== -->
+  <header class="sticky top-0 z-50 bg-cream/90 backdrop-blur-md border-b border-cream-border transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+      <!-- Brand Logo -->
+      <a href="#acasa" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-2xl bg-forest flex items-center justify-center text-cream shadow-sm group-hover:scale-105 transition-transform">
+          <!-- Iconiță picătură + frunză -->
+          <svg class="w-6 h-6" viewBox="0 0 32 32" fill="none">
+            <path d="M16 3C16 3 7 13.2 7 20C7 24.97 11.03 29 16 29C20.97 29 25 24.97 25 20C25 13.2 16 3 16 3Z" fill="#7B885A" stroke="#F4EDE4" stroke-width="1.8"/>
+            <path d="M16 26C16 20 19.5 16.5 23 15.5C22.5 19.5 19.5 22.5 16 23.5" stroke="#F4EDE4" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <span class="font-hero font-bold text-xl tracking-wide text-forest block leading-none">AQUABLOOM</span>
+          <span class="font-mono text-[10px] uppercase tracking-widest text-sage-dark block mt-0.5">by Green Nest</span>
+        </div>
+      </a>
+
+      <!-- Navigație Desktop -->
+      <nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-ink-muted">
+        <a href="#despre" class="hover:text-forest transition-colors">Despre Noi</a>
+        <a href="#tehnologie" class="hover:text-forest transition-colors">Schemă Tehnică</a>
+        <a href="#beneficii" class="hover:text-forest transition-colors">Beneficii & Date</a>
+        <a href="#aplicatie" class="hover:text-forest transition-colors">Aplicația</a>
+        <a href="#ghid" class="hover:text-forest transition-colors">Ghid Utilizare</a>
+        <a href="#conditii" class="hover:text-forest transition-colors">Specificații</a>
+        <a href="#comunitate" class="hover:text-forest transition-colors">Comunitate</a>
+      </nav>
+
+      <!-- CTA Buton + Mobile Menu Button -->
+      <div class="flex items-center gap-3">
+        <button onclick="openWaitlistModal()" class="bg-forest hover:bg-forest-dark text-cream text-xs sm:text-sm font-semibold px-4 sm:px-5 py-2.5 rounded-full shadow-sm hover:shadow transition-all cursor-pointer">
+          Listă de așteptare
+        </button>
+        <button id="mobile-menu-btn" aria-label="Deschide meniul" class="lg:hidden p-2 rounded-xl text-forest hover:bg-cream-dark">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Meniu Mobil Dropdown -->
+    <div id="mobile-menu" class="hidden lg:hidden bg-cream border-b border-cream-border px-6 py-4 space-y-3 text-sm font-medium text-ink">
+      <a href="#despre" class="block py-1.5 hover:text-forest mobile-link">Despre Noi & Sistem</a>
+      <a href="#tehnologie" class="block py-1.5 hover:text-forest mobile-link">Integrare Bluetooth & Schemă</a>
+      <a href="#beneficii" class="block py-1.5 hover:text-forest mobile-link">Ce Nevoie Satisface & Statistici</a>
+      <a href="#aplicatie" class="block py-1.5 hover:text-forest mobile-link">Aplicația Noastră (Simulator)</a>
+      <a href="#ghid" class="block py-1.5 hover:text-forest mobile-link">Ghid de Utilizare</a>
+      <a href="#conditii" class="block py-1.5 hover:text-forest mobile-link">Limite și Condiții de Acces</a>
+      <a href="#comunitate" class="block py-1.5 hover:text-forest mobile-link">Obiective SMART & Social Media</a>
+    </div>
+  </header>
+
+  <!-- ==================== 1. HERO SECTION (SLIDE 1) ==================== -->
+  <section id="acasa" class="relative hero-room-gradient pt-10 pb-20 sm:pt-16 sm:pb-28 overflow-hidden border-b border-cream-border">
+    <!-- Semicerc organic stânga (identic cu Slide 1) -->
+    <div class="hidden sm:block absolute -left-24 top-1/2 -translate-y-1/2 w-44 h-96 bg-sage rounded-r-full opacity-90 pointer-events-none"></div>
+
+    <!-- Fereastră stilizată subtilă în fundal stânga (inspirat din atmosfera luminoasă a Slide-ului 1) -->
+    <div class="hidden md:block absolute left-10 top-6 bottom-12 w-44 border-r-4 border-white/40 bg-gradient-to-r from-white/30 to-transparent pointer-events-none"></div>
+
+    <!-- Podea stilizată jos -->
+    <div class="hero-floor absolute bottom-0 inset-x-0 h-10 sm:h-12 pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center">
+        
+        <!-- Coloana Stângă: Titlu Masiv AQUA BLOOM & Echipa -->
+        <div class="lg:col-span-7 sm:pl-10 lg:pl-14">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cream-dark border border-cream-border text-xs font-mono uppercase tracking-wider text-forest mb-6">
+            <span class="w-2 h-2 rounded-full bg-sage animate-ping"></span>
+            Green Nest • Smart Plant Care
+          </div>
+
+          <div class="relative inline-block">
+            <h1 class="font-hero font-bold text-6xl sm:text-7xl md:text-8xl lg:text-[6.5rem] text-forest tracking-tight leading-[0.92] select-none">
+              AQUA<br />BLOOM
+            </h1>
+
+            <!-- Badge Circular HAPPIER PLANTS (ca în Slide 1) -->
+            <div class="animate-float sm:absolute sm:-right-28 sm:top-2 mt-4 sm:mt-0 w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-sage text-cream flex flex-col items-center justify-center text-center p-2 shadow-lg border-2 border-cream/40">
+              <span class="font-mono text-[11px] sm:text-xs font-bold tracking-widest leading-snug">
+                HAPPIER<br />PLANTS
+              </span>
+            </div>
+          </div>
+
+          <p class="mt-6 text-base sm:text-lg text-ink-muted max-w-xl leading-relaxed">
+            Sistem inteligent de monitorizare a umidității solului și irigare automată pentru plantele de interior. Îmbinăm electronica, programarea și designul botanic pentru plante mereu sănătoase, fără efort.
+          </p>
+
+          <!-- Butoane Acțiune -->
+          <div class="mt-8 flex flex-wrap items-center gap-4">
+            <a href="#despre" class="bg-forest hover:bg-forest-dark text-cream font-semibold px-7 py-3.5 rounded-full shadow-botanical transition-all inline-flex items-center gap-2">
+              <span>Descoperă sistemul</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </a>
+            <button onclick="openWaitlistModal('demo')" class="bg-cream-card hover:bg-white text-forest border border-forest/25 font-semibold px-7 py-3.5 rounded-full transition-all inline-flex items-center gap-2 cursor-pointer">
+              <span>Solicită o demonstrație</span>
+            </button>
+          </div>
+
+          <!-- Lista Autorilor / Echipei (exact ca în colțul stânga-jos al Slide-ului 1) -->
+          <div class="mt-10 pt-5 border-t border-cream-border/80 max-w-md">
+            <p class="font-mono text-[11px] uppercase tracking-widest text-sage-dark mb-1.5">Echipa Proiectului</p>
+            <ul class="font-mono text-xs sm:text-[13px] text-ink-muted space-y-0.5 tracking-wide">
+              <li>ALBULEȚ AMALIA-CRISTIANA</li>
+              <li>DUNKA IULIA-ECATERINA</li>
+              <li>NIȚĂ DENISA ȘTEFANIA</li>
+              <li>SARU IOAN</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Coloana Dreaptă: Ilustrație Botanică Detaliată Monstera (SVG custom fidel Slide 1) -->
+        <div class="lg:col-span-5 relative flex justify-center lg:justify-end">
+          <div class="relative w-full max-w-md lg:max-w-lg">
+            <svg viewBox="0 0 460 480" class="w-full h-auto drop-shadow-xl" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Rădăcini aeriene fine (exact ca în dreapta Slide 1) -->
+              <path d="M360 110 C340 190, 310 260, 330 360 C340 410, 315 445, 305 465" stroke="#8C7355" stroke-width="2.2" stroke-linecap="round" opacity="0.75"/>
+              <path d="M385 130 C395 220, 365 300, 385 395 C392 430, 375 455, 365 470" stroke="#7A6246" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+              <path d="M345 160 C305 230, 290 310, 275 415" stroke="#9C8265" stroke-width="1.6" stroke-linecap="round" opacity="0.65"/>
+              <path d="M405 180 C425 270, 410 360, 425 450" stroke="#8C7355" stroke-width="1.8" stroke-linecap="round" opacity="0.7"/>
+
+              <!-- Tulpini principale -->
+              <path d="M440 20 C390 80, 340 140, 285 205" stroke="#3B5323" stroke-width="10" stroke-linecap="round"/>
+              <path d="M450 90 C410 140, 385 195, 370 260" stroke="#2E421B" stroke-width="8" stroke-linecap="round"/>
+
+              <!-- Frunză Monstera Superioară -->
+              <g transform="translate(170, -10) rotate(-8)">
+                <path d="M120 20 C190 10, 255 55, 250 115 C246 150, 210 165, 190 140 C180 128, 198 112, 215 115 C195 102, 165 115, 160 135 C155 155, 130 165, 115 140 C105 125, 125 105, 145 105 C120 92, 95 108, 90 130 C85 150, 55 150, 50 120 C45 75, 75 28, 120 20 Z" fill="#2F4A1E"/>
+                <path d="M125 25 C150 65, 175 105, 195 135" stroke="#537A36" stroke-width="3.5" stroke-linecap="round"/>
+              </g>
+
+              <!-- Frunză Mare Centrală Monstera Deliciosa -->
+              <g transform="translate(35, 95)">
+                <!-- Contur lobat realist cu fenestrații -->
+                <path d="M235 45 
+                         C185 15, 110 22, 65 72
+                         C45 94, 34 118, 28 142
+                         L88 146 C94 146, 94 156, 86 158 L24 166
+                         C20 190, 20 214, 24 238
+                         L95 224 C102 222, 105 232, 96 236 L28 258
+                         C34 282, 44 304, 58 322
+                         L118 286 C125 282, 130 292, 122 298 L72 338
+                         C90 354, 112 364, 134 366
+                         L166 308 C170 300, 180 306, 176 315 L154 366
+                         C184 362, 214 342, 238 308
+                         C265 270, 286 218, 294 168
+                         L226 184 C218 186, 216 176, 224 172 L296 146
+                         C298 122, 294 98, 284 78
+                         L222 114 C215 118, 210 108, 218 102 L274 62
+                         C264 52, 250 48, 235 45 Z" 
+                      fill="url(#monsteraGrad)"/>
+                
+                <!-- Găuri interioare (fenestrații ovale) -->
+                <ellipse cx="145" cy="115" rx="14" ry="7" transform="rotate(-25 145 115)" fill="#F4EDE4"/>
+                <ellipse cx="122" cy="175" rx="16" ry="7" transform="rotate(-15 122 175)" fill="#F4EDE4"/>
+                <ellipse cx="138" cy="235" rx="15" ry="6.5" transform="rotate(10 138 235)" fill="#F4EDE4"/>
+                <ellipse cx="195" cy="145" rx="12" ry="6" transform="rotate(25 195 145)" fill="#F4EDE4"/>
+                <ellipse cx="185" cy="215" rx="14" ry="6.5" transform="rotate(35 185 215)" fill="#F4EDE4"/>
+
+                <!-- Nervura principală și secundare -->
+                <path d="M248 48 C205 125, 165 215, 136 355" stroke="#689445" stroke-width="5" stroke-linecap="round"/>
+                <path d="M212 108 C165 102, 115 108, 68 124" stroke="#5A823B" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M190 158 C140 162, 90 175, 44 198" stroke="#5A823B" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M168 214 C125 228, 88 250, 52 282" stroke="#5A823B" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M204 128 C235 125, 260 128, 282 135" stroke="#5A823B" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M182 185 C215 192, 245 204, 270 220" stroke="#5A823B" stroke-width="2.5" stroke-linecap="round"/>
+              </g>
+
+              <defs>
+                <linearGradient id="monsteraGrad" x1="40" y1="40" x2="290" y2="360" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#3F6227"/>
+                  <stop offset="55%" stop-color="#2D471B"/>
+                  <stop offset="100%" stop-color="#1F3312"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 2. DESPRE NOI & SISTEMUL (SLIDE 2) ==================== -->
+  <section id="despre" class="relative py-20 sm:py-28 bg-cream overflow-hidden">
+    <!-- Bandă verticală verde salvie stânga (exact ca în Slide 2) -->
+    <div class="hidden xl:block absolute left-0 top-0 bottom-0 w-28 bg-sage"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:pl-36 relative z-10">
+      <div class="reveal">
+        <span class="font-mono text-xs uppercase tracking-widest text-sage-dark block mb-2">Identitate & Viziune</span>
+        <h2 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold text-forest tracking-wide uppercase">
+          Despre Noi
+        </h2>
+      </div>
+
+      <!-- Cele două blocuri: Compania - Green Nest & Produsul - AquaBloom -->
+      <div class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8 reveal">
+        <!-- Card Compania -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl p-7 sm:p-9 shadow-botanical relative overflow-hidden">
+          <div class="w-12 h-12 rounded-2xl bg-sage/20 text-forest flex items-center justify-center mb-5">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+          </div>
+          <h3 class="font-mono font-bold text-lg sm:text-xl text-forest uppercase tracking-wider mb-4">
+            Compania — Green Nest
+          </h3>
+          <ul class="space-y-3 text-ink text-sm sm:text-base leading-relaxed">
+            <li class="flex items-start gap-3">
+              <span class="w-2 h-2 rounded-full bg-forest mt-2 shrink-0"></span>
+              <span><strong>Startup tehnologic</strong> orientat spre inovație sustenabilă și confort rezidențial.</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-2 h-2 rounded-full bg-forest mt-2 shrink-0"></span>
+              <span>Urmărim dezvoltarea soluțiilor tehnologice pentru locuințe, facilitând <strong>îngrijirea plantelor</strong> zi de zi.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Card Produsul -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl p-7 sm:p-9 shadow-botanical relative overflow-hidden">
+          <div class="w-12 h-12 rounded-2xl bg-forest text-cream flex items-center justify-center mb-5">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </div>
+          <h3 class="font-mono font-bold text-lg sm:text-xl text-forest uppercase tracking-wider mb-4">
+            Produsul — AquaBloom
+          </h3>
+          <ul class="space-y-3 text-ink text-sm sm:text-base leading-relaxed">
+            <li class="flex items-start gap-3">
+              <span class="w-2 h-2 rounded-full bg-sage mt-2 shrink-0"></span>
+              <span><strong>Sistem inteligent de monitorizare</strong> a umidității solului și de <strong>irigare automată</strong> a plantelor de interior.</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-2 h-2 rounded-full bg-sage mt-2 shrink-0"></span>
+              <span>Ne propunem să reunim <strong>electronica, programarea și design-ul</strong> într-un obiect armonios.</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-2 h-2 rounded-full bg-sage mt-2 shrink-0"></span>
+              <span>Scopul produsului este de a <strong>stârni interesul</strong> publicului și a încuraja <strong>creșterea plantelor</strong>.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Cele 3 Componente ale Sistemului (Senzori, Unitate de control, Sistemul de irigare) -->
+      <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 reveal">
+        <!-- 1. Senzori -->
+        <div class="bg-cream-dark/70 hover:bg-cream-card border border-cream-border rounded-3xl p-8 text-center transition-all hover:-translate-y-1 shadow-sm">
+          <h4 class="font-mono font-bold text-lg text-forest uppercase tracking-wider mb-3">Senzori</h4>
+          <p class="font-mono text-sm text-ink-muted leading-relaxed mb-6">
+            - poziționați în ghivece;<br />
+            - măsoară umiditatea.
+          </p>
+          <!-- Iconiță unde semnal (exact ca în Slide 2) -->
+          <div class="flex justify-center">
+            <svg class="w-16 h-12 text-sage" viewBox="0 0 80 50" fill="none">
+              <circle cx="40" cy="25" r="4" fill="currentColor"/>
+              <circle cx="40" cy="25" r="9" stroke="currentColor" stroke-width="2"/>
+              <path d="M26 14C21 19 21 31 26 36" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M19 9C11 17 11 33 19 41" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M54 14C59 19 59 31 54 36" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              <path d="M61 9C69 17 69 33 61 41" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 2. Unitate de Control -->
+        <div class="bg-cream-dark/70 hover:bg-cream-card border border-cream-border rounded-3xl p-8 text-center transition-all hover:-translate-y-1 shadow-sm">
+          <h4 class="font-mono font-bold text-lg text-forest uppercase tracking-wider mb-3">Unitate de Control</h4>
+          <p class="font-mono text-sm text-ink-muted leading-relaxed mb-6">
+            - interpretează semnalele;<br />
+            - afișează gradul de umiditate al solului;<br />
+            - comunică cu aplicația și pompa.
+          </p>
+          <!-- Iconiță microcontroller / ecran -->
+          <div class="flex justify-center">
+            <svg class="w-14 h-12 text-forest" viewBox="0 0 64 52" fill="none">
+              <rect x="14" y="6" width="36" height="40" rx="8" stroke="currentColor" stroke-width="2.5" fill="#FAF6F0"/>
+              <rect x="20" y="13" width="24" height="16" rx="3" fill="#7B885A" fill-opacity="0.25" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M24 22L29 18L34 24L40 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="32" cy="37" r="2.5" fill="currentColor"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 3. Sistemul de Irigare -->
+        <div class="bg-cream-dark/70 hover:bg-cream-card border border-cream-border rounded-3xl p-8 text-center transition-all hover:-translate-y-1 shadow-sm">
+          <h4 class="font-mono font-bold text-lg text-forest uppercase tracking-wider mb-3">Sistemul de Irigare</h4>
+          <p class="font-mono text-sm text-ink-muted leading-relaxed mb-6">
+            - trimite apă către ghivece prin tuburile de distribuție.
+          </p>
+          <!-- Iconiță pahar cu apă (fidel Slide 2) -->
+          <div class="flex justify-center">
+            <svg class="w-14 h-12" viewBox="0 0 60 52" fill="none">
+              <path d="M16 8H44L40 44H20L16 8Z" stroke="#2B7BB9" stroke-width="2.5" stroke-linejoin="round" fill="#FAF6F0"/>
+              <path d="M18.2 22H41.8L39.6 42H20.4L18.2 22Z" fill="#7CC4EC" fill-opacity="0.65"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 3. INTEGRARE BLUETOOTH & SCHEMĂ CAD INTERACTIVĂ (SLIDE 3) ==================== -->
+  <section id="tehnologie" class="relative py-20 sm:py-28 bg-cream-dark/60 border-y border-cream-border overflow-hidden">
+    <!-- Elemente decorative laterale ca în Slide 3 -->
+    <div class="hidden lg:block absolute left-0 top-0 w-24 h-72 bg-sage rounded-br-3xl opacity-85"></div>
+    <div class="hidden lg:block absolute right-0 bottom-16 w-16 h-64 bg-sage rounded-l-full opacity-85"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="text-center max-w-3xl mx-auto reveal">
+        <span class="font-mono text-xs uppercase tracking-widest text-sage-dark block mb-2">Arhitectură Hardware & Conectivitate</span>
+        <h2 class="font-serif text-3xl sm:text-5xl lg:text-6xl font-semibold text-forest tracking-wide uppercase leading-tight">
+          Integrare Bluetooth<br />Fără Griji
+        </h2>
+        <p class="mt-4 text-sm sm:text-base text-ink-muted">
+          Explorează diagrama tehnică <span class="font-mono font-semibold text-forest">Smart Watering System</span>. Apasă pe oricare dintre punctele numerotate pentru a inspecta componentele.
+        </p>
+      </div>
+
+      <!-- Container Diagramă CAD Interactivă + Panou Explicații -->
+      <div class="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start reveal">
+        
+        <!-- Diagrama CAD SVG (8 coloane) -->
+        <div class="lg:col-span-8 bg-[#FAF8F5] border-2 border-ink/20 rounded-3xl p-4 sm:p-6 shadow-botanical relative">
+          <!-- Antet stil planșă tehnică -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-ink/15 font-mono text-[11px] text-ink-muted">
+            <span>SCHEMATIC DRAWING • NO. 13</span>
+            <span class="font-bold text-forest">SMART WATERING SYSTEM — AQUABLOOM</span>
+          </div>
+
+          <div class="relative w-full">
+            <svg viewBox="0 0 820 470" class="w-full h-auto select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Grid subtil tehnic -->
+              <defs>
+                <pattern id="cadGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#33451E" stroke-opacity="0.06" stroke-width="0.8"/>
+                </pattern>
+              </defs>
+              <rect width="820" height="470" rx="12" fill="url(#cadGrid)"/>
+
+              <!-- 1. WATER RESERVOIR (Stânga sus) -->
+              <g class="cursor-pointer" onclick="selectCadPart(1)">
+                <text x="55" y="28" font-family="Space Mono, monospace" font-size="11" font-weight="bold" fill="#2B3024">WATER RESERVOIR</text>
+                <!-- Corp rezervor -->
+                <rect x="65" y="42" width="130" height="175" rx="6" fill="#F4EDE4" stroke="#2B3024" stroke-width="2"/>
+                <!-- Capac + Baterie reîncărcabilă -->
+                <rect x="62" y="36" width="136" height="16" rx="3" fill="#D6C9B4" stroke="#2B3024" stroke-width="1.8"/>
+                <text x="215" y="34" font-family="Space Mono, monospace" font-size="10" fill="#2B3024">RECHARGEABLE BATTERY</text>
+                <line x1="198" y1="44" x2="255" y2="44" stroke="#2B3024" stroke-width="1.5"/>
+                <rect x="255" y="39" width="22" height="10" rx="2" fill="#7B885A" stroke="#2B3024" stroke-width="1.2"/>
+                <text x="282" y="47" font-family="Space Mono, monospace" font-size="9" fill="#4A5240">CHARGING PORT</text>
+
+                <!-- Nivel apă în rezervor -->
+                <rect x="67" y="95" width="126" height="120" rx="4" fill="#7CC4EC" fill-opacity="0.28"/>
+                <path d="M67 95 Q 98 89, 130 95 T 193 95" stroke="#2B7BB9" stroke-width="1.5"/>
+                <!-- Linie punctată nivel -->
+                <line x1="67" y1="115" x2="193" y2="115" stroke="#2B3024" stroke-dasharray="4 3" stroke-width="1"/>
+                <line x1="67" y1="135" x2="193" y2="135" stroke="#2B3024" stroke-dasharray="4 3" stroke-width="1"/>
+
+                <!-- Filtru apă + Pompă submersibilă integrată -->
+                <rect x="108" y="165" width="26" height="42" rx="2" fill="#C5C4A2" stroke="#2B3024" stroke-width="1.5"/>
+                <rect x="144" y="155" width="38" height="52" rx="4" fill="#7B885A" fill-opacity="0.4" stroke="#2B3024" stroke-width="1.8"/>
+                <text x="12" y="102" font-family="Space Mono, monospace" font-size="9" fill="#2B3024">INTEGRATED</text>
+                <text x="12" y="113" font-family="Space Mono, monospace" font-size="9" fill="#2B3024">SUBMERSIBLE</text>
+                <text x="12" y="124" font-family="Space Mono, monospace" font-size="9" fill="#2B3024">PUMP</text>
+                <line x1="56" y1="126" x2="144" y2="172" stroke="#2B3024" stroke-width="1"/>
+
+                <text x="12" y="185" font-family="Space Mono, monospace" font-size="9" fill="#2B3024">WATER FILTER</text>
+                <line x1="82" y1="182" x2="108" y2="182" stroke="#2B3024" stroke-width="1"/>
+              </g>
+
+              <!-- 3. VALVE DISTRIBUTOR (Centru sus) -->
+              <g class="cursor-pointer" onclick="selectCadPart(3)">
+                <text x="360" y="28" font-family="Space Mono, monospace" font-size="10" font-weight="bold" fill="#2B3024">VALVE DISTRIBUTOR</text>
+                <rect x="365" y="38" width="90" height="65" rx="6" fill="#FAF6F0" stroke="#2B3024" stroke-width="1.5"/>
+                <rect x="380" y="54" width="22" height="32" rx="3" fill="#D6C9B4" stroke="#2B3024" stroke-width="1.4"/>
+                <rect x="418" y="54" width="22" height="32" rx="3" fill="#D6C9B4" stroke="#2B3024" stroke-width="1.4"/>
+                <path d="M391 46V94 M429 46V94" stroke="#2B3024" stroke-width="1.5"/>
+                <text x="362" y="116" font-family="Space Mono, monospace" font-size="9" fill="#4A5240">DISTRIBUTION VALVES</text>
+              </g>
+
+              <!-- 2. SMART CONTROL UNIT (Dreapta) -->
+              <g class="cursor-pointer" onclick="selectCadPart(2)">
+                <text x="535" y="28" font-family="Space Mono, monospace" font-size="11" font-weight="bold" fill="#2B3024">SMART CONTROL UNIT</text>
+                
+                <!-- Capac superior cu ecran LCD înclinat -->
+                <path d="M545 68 C550 52, 568 46, 588 50 L668 68 C684 72, 690 88, 684 104 L658 168 C652 184, 634 190, 616 186 L534 166 C518 162, 512 146, 518 130 Z" fill="#FAF6F0" stroke="#2B3024" stroke-width="2.2"/>
+                <!-- Ecran LCD interior -->
+                <path d="M554 78 L658 102 L636 164 L532 140 Z" fill="#EFE6DA" stroke="#33451E" stroke-width="1.6"/>
+                <!-- Simbol Bluetooth & Baterie pe LCD -->
+                <text x="562" y="96" font-family="Space Mono, monospace" font-size="10" font-weight="bold" fill="#33451E">ᛒ  85%</text>
+                <!-- Citiri senzori pe LCD -->
+                <text x="552" y="114" font-family="Space Mono, monospace" font-size="9.5" fill="#2B3024">68% → 50ml</text>
+                <text x="546" y="129" font-family="Space Mono, monospace" font-size="9.5" fill="#2B3024">72% → 30ml</text>
+                <text x="540" y="144" font-family="Space Mono, monospace" font-size="9.5" fill="#2B3024">51% → 100ml</text>
+
+                <!-- Baza PCB & Microcontroller (vedere explodată dedesubt) -->
+                <path d="M532 205 L616 185 L692 206 L692 246 L612 276 L524 250 Z" fill="#E6DDD0" stroke="#2B3024" stroke-width="2"/>
+                <rect x="575" y="205" width="46" height="28" rx="3" fill="#7B885A" stroke="#2B3024" stroke-width="1.4"/>
+                <!-- Porturi distribuție jos -->
+                <circle cx="552" cy="252" r="5" fill="#FAF6F0" stroke="#2B3024" stroke-width="1.5"/>
+                <circle cx="572" cy="258" r="5" fill="#FAF6F0" stroke="#2B3024" stroke-width="1.5"/>
+                <circle cx="592" cy="264" r="5" fill="#FAF6F0" stroke="#2B3024" stroke-width="1.5"/>
+
+                <!-- Etichete dreapta -->
+                <text x="705" y="55" font-family="Space Mono, monospace" font-size="9.5" fill="#2B3024">LCD SCREEN</text>
+                <line x1="665" y1="72" x2="702" y2="52" stroke="#2B3024" stroke-width="1"/>
+
+                <text x="705" y="82" font-family="Space Mono, monospace" font-size="9.5" fill="#2B3024">BATTERY STATUS</text>
+                <line x1="652" y1="95" x2="702" y2="80" stroke="#2B3024" stroke-width="1"/>
+
+                <text x="705" y="112" font-family="Space Mono, monospace" font-size="9.5" fill="#2B3024">SENSOR READINGS</text>
+                <line x1="642" y1="125" x2="702" y2="110" stroke="#2B3024" stroke-width="1"/>
+
+                <text x="705" y="148" font-family="Space Mono, monospace" font-size="9.5" fill="#2B3024">CENTRAL</text>
+                <text x="705" y="160" font-family="Space Mono, monospace" font-size="9.5" fill="#2B3024">MICROCONTROLLER</text>
+                <line x1="622" y1="212" x2="702" y2="152" stroke="#2B3024" stroke-width="1"/>
+
+                <text x="705" y="198" font-family="Space Mono, monospace" font-size="9.5" fill="#2B3024">BLUETOOTH MODULE</text>
+                <line x1="655" y1="215" x2="702" y2="195" stroke="#2B3024" stroke-width="1"/>
+              </g>
+
+              <!-- TUBURI DE CONEXIUNE (Flow Direction) -->
+              <!-- Tub din pompă spre unitatea de control -->
+              <path d="M163 155 V 76 H 235 C 295 76, 330 238, 548 252" stroke="#33451E" stroke-width="3" fill="none"/>
+              <path d="M163 155 V 76 H 235 C 295 76, 330 238, 548 252" stroke="#7CC4EC" stroke-width="1.2" stroke-dasharray="6 4" fill="none"/>
+              <text x="275" y="182" font-family="Space Mono, monospace" font-size="9.5" fill="#33451E">FLOW DIRECTION →</text>
+
+              <!-- Tuburi din unitate către ghiveci -->
+              <path d="M572 262 C 535 320, 440 335, 315 335" stroke="#33451E" stroke-width="2.5" fill="none"/>
+              <path d="M592 268 C 550 340, 450 352, 315 352" stroke="#7B885A" stroke-width="2" stroke-dasharray="4 3" fill="none"/>
+              <text x="385" y="325" font-family="Space Mono, monospace" font-size="9.5" fill="#33451E">← FLOW DIRECTION</text>
+
+              <!-- 4. GHIVECI CU PLANTĂ & SENZOR UMIDITATE (Centru jos) -->
+              <g class="cursor-pointer" onclick="selectCadPart(4)">
+                <!-- Ghiveci -->
+                <path d="M235 325 H 335 L 323 435 H 247 Z" fill="#D6C9B4" stroke="#2B3024" stroke-width="2"/>
+                <rect x="230" y="315" width="110" height="12" rx="3" fill="#C8B9A3" stroke="#2B3024" stroke-width="1.8"/>
+                <!-- Frunze schiță CAD -->
+                <path d="M285 315 C285 285, 255 265, 235 272 C255 255, 275 268, 285 292 Z" fill="#7B885A" stroke="#2B3024" stroke-width="1.3"/>
+                <path d="M285 315 C285 280, 315 260, 338 270 C318 250, 295 265, 285 292 Z" fill="#7B885A" stroke="#2B3024" stroke-width="1.3"/>
+                <path d="M285 305 C272 260, 275 232, 285 220 C295 232, 298 260, 285 305 Z" fill="#33451E" stroke="#2B3024" stroke-width="1.3"/>
+
+                <!-- Senzor introdus în sol -->
+                <rect x="278" y="302" width="14" height="22" rx="2" fill="#33451E" stroke="#2B3024" stroke-width="1.4"/>
+                <path d="M281 324 H 289 V 385 L 285 398 L 281 385 Z" fill="#FAF6F0" stroke="#2B3024" stroke-width="1.5"/>
+
+                <text x="355" y="378" font-family="Space Mono, monospace" font-size="9.5" font-weight="bold" fill="#2B3024">MOISTURE SENSOR</text>
+                <text x="355" y="394" font-family="Space Mono, monospace" font-size="9" fill="#4A5240">MEASURING PROBE</text>
+                <text x="355" y="410" font-family="Space Mono, monospace" font-size="9" fill="#4A5240">SOIL & ROOTS</text>
+                <line x1="291" y1="375" x2="350" y2="375" stroke="#2B3024" stroke-width="1"/>
+              </g>
+
+              <!-- DETALIU VÂRF SONDA (Stânga jos - Probe Tip Detail din Slide 3) -->
+              <g class="cursor-pointer" onclick="selectCadPart(4)">
+                <rect x="22" y="295" width="185" height="155" rx="6" fill="#FAF6F0" stroke="#2B3024" stroke-width="1.4"/>
+                <text x="36" y="314" font-family="Space Mono, monospace" font-size="10" font-weight="bold" fill="#2B3024">PROBE TIP DETAIL</text>
+                <!-- Sondă mărită -->
+                <path d="M62 332 H 84 V 402 L 73 426 L 62 402 Z" fill="#EFE6DA" stroke="#2B3024" stroke-width="1.6"/>
+                <rect x="66" y="355" width="14" height="42" fill="#C88A55" fill-opacity="0.6" stroke="#2B3024" stroke-width="1"/>
+                <text x="96" y="346" font-family="Space Mono, monospace" font-size="8" fill="#2B3024">CAPACITIVE SENSING</text>
+                <text x="96" y="372" font-family="Space Mono, monospace" font-size="8" fill="#2B3024">COPPER-PLATED</text>
+                <text x="96" y="398" font-family="Space Mono, monospace" font-size="8" fill="#2B3024">EPOXY INSULATION</text>
+                <text x="96" y="424" font-family="Space Mono, monospace" font-size="8" fill="#2B3024">SOIL CONTACT</text>
+                <line x1="84" y1="370" x2="94" y2="370" stroke="#2B3024" stroke-width="1"/>
+                <line x1="84" y1="396" x2="94" y2="396" stroke="#2B3024" stroke-width="1"/>
+              </g>
+
+              <!-- HOTSPOTS INTERACTIVE NUMEROTATE -->
+              <!-- Hotspot 1 -->
+              <g class="cursor-pointer" onclick="selectCadPart(1)">
+                <circle cx="130" cy="80" r="15" fill="#33451E" stroke="#FAF6F0" stroke-width="2.5"/>
+                <text x="130" y="84" text-anchor="middle" font-family="Space Mono, monospace" font-size="12" font-weight="bold" fill="#FAF6F0">1</text>
+              </g>
+              <!-- Hotspot 2 -->
+              <g class="cursor-pointer" onclick="selectCadPart(2)">
+                <circle cx="605" cy="118" r="15" fill="#33451E" stroke="#FAF6F0" stroke-width="2.5"/>
+                <text x="605" y="122" text-anchor="middle" font-family="Space Mono, monospace" font-size="12" font-weight="bold" fill="#FAF6F0">2</text>
+              </g>
+              <!-- Hotspot 3 -->
+              <g class="cursor-pointer" onclick="selectCadPart(3)">
+                <circle cx="410" cy="70" r="15" fill="#33451E" stroke="#FAF6F0" stroke-width="2.5"/>
+                <text x="410" y="74" text-anchor="middle" font-family="Space Mono, monospace" font-size="12" font-weight="bold" fill="#FAF6F0">3</text>
+              </g>
+              <!-- Hotspot 4 -->
+              <g class="cursor-pointer" onclick="selectCadPart(4)">
+                <circle cx="285" cy="355" r="15" fill="#33451E" stroke="#FAF6F0" stroke-width="2.5"/>
+                <text x="285" y="359" text-anchor="middle" font-family="Space Mono, monospace" font-size="12" font-weight="bold" fill="#FAF6F0">4</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Panou Interactiv Detalii Componentă Selectată (4 coloane) -->
+        <div class="lg:col-span-4 space-y-4">
+          <!-- Selector butoane componente -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="selectCadPart(1)" id="cad-tab-1" class="cad-tab text-left px-4 py-3 rounded-2xl border font-mono text-xs font-bold transition-all cursor-pointer bg-forest text-cream border-forest">
+              01. Rezervor & Pompă
+            </button>
+            <button onclick="selectCadPart(2)" id="cad-tab-2" class="cad-tab text-left px-4 py-3 rounded-2xl border font-mono text-xs font-bold transition-all cursor-pointer bg-cream-card text-forest border-cream-border hover:border-forest">
+              02. Unitate Control
+            </button>
+            <button onclick="selectCadPart(3)" id="cad-tab-3" class="cad-tab text-left px-4 py-3 rounded-2xl border font-mono text-xs font-bold transition-all cursor-pointer bg-cream-card text-forest border-cream-border hover:border-forest">
+              03. Valve Distribuție
+            </button>
+            <button onclick="selectCadPart(4)" id="cad-tab-4" class="cad-tab text-left px-4 py-3 rounded-2xl border font-mono text-xs font-bold transition-all cursor-pointer bg-cream-card text-forest border-cream-border hover:border-forest">
+              04. Senzor Umiditate
+            </button>
+          </div>
+
+          <!-- Card Dinamic Explicație -->
+          <div id="cad-detail-card" class="bg-cream-card border border-cream-border rounded-3xl p-6 sm:p-7 shadow-botanical">
+            <div class="flex items-center justify-between mb-4">
+              <span id="cad-badge" class="px-3 py-1 rounded-full bg-sage/20 text-forest font-mono text-xs font-bold">COMPONENTA 01 / 04</span>
+              <span class="font-mono text-xs text-sage-dark">CAD SPEC</span>
+            </div>
+            <h3 id="cad-title" class="font-serif text-2xl font-semibold text-forest mb-3">
+              Rezervor de Apă & Pompă Submersibilă
+            </h3>
+            <p id="cad-desc" class="text-sm sm:text-base text-ink-muted leading-relaxed mb-5">
+              Rezervorul integrat dispune de o pompă submersibilă silențioasă, filtru de impurități și baterie reîncărcabilă cu port dedicat. Asigură autonomie extinsă pentru udarea simultană a mai multor ghivece.
+            </p>
+            <div id="cad-specs" class="space-y-2 pt-4 border-t border-cream-border font-mono text-xs text-ink">
+              <div class="flex justify-between"><span>Pompă:</span><span class="font-bold text-forest">Submersibilă silențioasă</span></div>
+              <div class="flex justify-between"><span>Protecție:</span><span class="font-bold text-forest">Filtru apă & nivel rezidual</span></div>
+              <div class="flex justify-between"><span>Alimentare:</span><span class="font-bold text-forest">Baterie reîncărcabilă / Rețea</span></div>
+            </div>
+          </div>
+
+          <!-- Banner Bluetooth Highlight -->
+          <div class="bg-forest text-cream rounded-3xl p-6 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-sage/40 flex items-center justify-center shrink-0">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7l10 10-5 5V2l5 5L7 17"/>
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-mono font-bold text-sm uppercase tracking-wider">Conectare Instantanee</h4>
+              <p class="text-xs text-cream/85 mt-1 leading-relaxed">
+                Asociere rapidă prin Bluetooth Low Energy pentru configurarea inițială și control direct din telefon.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 4. CE NEVOIE SATISFACE? & ACȚIUNEA PUBLICULUI (SLIDE 4) ==================== -->
+  <section id="beneficii" class="relative py-20 sm:py-28 bg-cream overflow-hidden">
+    <!-- Accent organic colț stânga sus + bandă jos (ca în Slide 4) -->
+    <div class="hidden md:block absolute top-0 left-0 w-28 h-28 bg-forest rounded-br-full"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 reveal">
+        
+        <!-- Coloana Stângă: CE NEVOIE SATISFACE? -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl p-8 sm:p-10 shadow-botanical">
+          <h2 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-forest tracking-wide uppercase leading-tight mb-8">
+            Ce Nevoie<br />Satisface?
+          </h2>
+
+          <div class="space-y-7">
+            <!-- Punct 1 cu iconiță asterisc botanic -->
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-full bg-forest/10 text-forest flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L13.8 8.5L19.5 4.8L16.2 10.6L22.5 12L16.2 13.4L19.5 19.2L13.8 15.5L12 22L10.2 15.5L4.5 19.2L7.8 13.4L1.5 12L7.8 10.6L4.5 4.8L10.2 8.5L12 2Z"/>
+                </svg>
+              </div>
+              <p class="font-mono text-sm sm:text-base text-ink leading-relaxed">
+                Gândit specific pentru pasionații de natură cu un stil de viață aglomerat, <strong class="text-forest">eliminând recurentul efort al udării plantelor</strong>.
+              </p>
+            </div>
+
+            <!-- Punct 2 cu iconiță asterisc botanic -->
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-full bg-forest/10 text-forest flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L13.8 8.5L19.5 4.8L16.2 10.6L22.5 12L16.2 13.4L19.5 19.2L13.8 15.5L12 22L10.2 15.5L4.5 19.2L7.8 13.4L1.5 12L7.8 10.6L4.5 4.8L10.2 8.5L12 2Z"/>
+                </svg>
+              </div>
+              <p class="font-mono text-sm sm:text-base text-ink leading-relaxed">
+                <strong class="text-forest">Control sporit:</strong> Oferă o gestionare precisă și predictibilă a îngrijirii plantelor, asigurând o dezvoltare armonioasă a plantelor.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coloana Dreaptă: ACȚIUNEA PUBLICULUI -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl p-8 sm:p-10 shadow-botanical">
+          <h2 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-semibold text-forest tracking-wide uppercase leading-tight mb-8">
+            Acțiunea<br />Publicului
+          </h2>
+
+          <div class="space-y-6">
+            <!-- Informare -->
+            <div class="flex items-start gap-4">
+              <div class="w-9 h-9 rounded-full bg-forest text-cream flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C12 2 5 10.2 5 15.5C5 19.37 8.13 22.5 12 22.5C15.87 22.5 19 19.37 19 15.5C19 10.2 12 2 12 2Z"/>
+                </svg>
+              </div>
+              <p class="font-mono text-sm sm:text-base text-ink leading-relaxed">
+                <strong class="text-forest">Informare:</strong> Vizitarea paginii de prezentare și consultarea modului de funcționare.
+              </p>
+            </div>
+
+            <!-- Interacțiune -->
+            <div class="flex items-start gap-4">
+              <div class="w-9 h-9 rounded-full bg-forest text-cream flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C12 2 5 10.2 5 15.5C5 19.37 8.13 22.5 12 22.5C15.87 22.5 19 19.37 19 15.5C19 10.2 12 2 12 2Z"/>
+                </svg>
+              </div>
+              <p class="font-mono text-sm sm:text-base text-ink leading-relaxed">
+                <strong class="text-forest">Interacțiune:</strong> <button onclick="openWaitlistModal()" class="underline decoration-sage decoration-2 underline-offset-4 hover:text-forest font-semibold cursor-pointer">Înscrierea pe lista de așteptare</button> / persoane interesate și solicitarea unei demonstrații.
+              </p>
+            </div>
+
+            <!-- Conectare -->
+            <div class="flex items-start gap-4">
+              <div class="w-9 h-9 rounded-full bg-forest text-cream flex items-center justify-center shrink-0 mt-0.5">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C12 2 5 10.2 5 15.5C5 19.37 8.13 22.5 12 22.5C15.87 22.5 19 19.37 19 15.5C19 10.2 12 2 12 2Z"/>
+                </svg>
+              </div>
+              <p class="font-mono text-sm sm:text-base text-ink leading-relaxed">
+                <strong class="text-forest">Conectare:</strong> Urmărirea conturilor <a href="#comunitate" class="underline decoration-sage decoration-2 underline-offset-4 hover:text-forest font-semibold">GreenNest</a> pentru noutăți și actualizări.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==================== 5. MOTIVELE UTILIZATORILOR — GRAFIC INTERACTIV (SLIDE 10) ==================== -->
+      <div id="chart-section" class="mt-20 sm:mt-24 bg-cream-card border border-cream-border rounded-3xl p-7 sm:p-12 shadow-botanical relative overflow-hidden reveal">
+        <!-- Accent cerc verde închis dreapta sus (ca în Slide 10) -->
+        <div class="hidden sm:block absolute -top-12 -right-12 w-32 h-32 rounded-full bg-forest"></div>
+
+        <div class="max-w-4xl mx-auto">
+          <div class="text-center mb-10">
+            <span class="font-mono text-xs uppercase tracking-widest text-sage-dark block mb-2">Studiu de Piață • De ce aleg utilizatorii AquaBloom</span>
+            <h3 class="font-serif text-3xl sm:text-5xl font-semibold text-forest tracking-wide uppercase">
+              Motivele Utilizatorilor
+            </h3>
+          </div>
+
+          <!-- Grafic Orizontal Fidel Slide-ului 10 -->
+          <div class="space-y-5 sm:space-y-6">
+            <!-- Bara 1: 35% -->
+            <div class="group">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
+                <div class="sm:w-72 sm:text-right text-sm sm:text-base font-medium text-ink shrink-0">
+                  Program încărcat / Job
+                </div>
+                <div class="flex-1 flex items-center gap-3">
+                  <div class="flex-1 bg-cream-dark rounded-r-xl h-10 sm:h-11 overflow-hidden p-0.5">
+                    <div class="chart-bar-fill h-full rounded-r-lg bg-[#33451E] flex items-center justify-end pr-3 transition-all group-hover:brightness-110" data-width="100%"></div>
+                  </div>
+                  <span class="font-mono font-bold text-base sm:text-lg text-forest w-10">35%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bara 2: 28% -->
+            <div class="group">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
+                <div class="sm:w-72 sm:text-right text-sm sm:text-base font-medium text-ink shrink-0">
+                  Lipsă reminder
+                </div>
+                <div class="flex-1 flex items-center gap-3">
+                  <div class="flex-1 bg-cream-dark rounded-r-xl h-10 sm:h-11 overflow-hidden p-0.5">
+                    <div class="chart-bar-fill h-full rounded-r-lg bg-[#7B885A] transition-all group-hover:brightness-105" data-width="80%"></div>
+                  </div>
+                  <span class="font-mono font-bold text-base sm:text-lg text-forest w-10">28%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bara 3: 18% -->
+            <div class="group">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
+                <div class="sm:w-72 sm:text-right text-sm sm:text-base font-medium text-ink shrink-0">
+                  Dificultate de estimare a umidității pământului
+                </div>
+                <div class="flex-1 flex items-center gap-3">
+                  <div class="flex-1 bg-cream-dark rounded-r-xl h-10 sm:h-11 overflow-hidden p-0.5">
+                    <div class="chart-bar-fill h-full rounded-r-lg bg-[#C5C4A2] transition-all group-hover:brightness-105" data-width="51.4%"></div>
+                  </div>
+                  <span class="font-mono font-bold text-base sm:text-lg text-forest w-10">18%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bara 4: 14% -->
+            <div class="group">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
+                <div class="sm:w-72 sm:text-right text-sm sm:text-base font-medium text-ink shrink-0">
+                  Călătorii scurte
+                </div>
+                <div class="flex-1 flex items-center gap-3">
+                  <div class="flex-1 bg-cream-dark rounded-r-xl h-10 sm:h-11 overflow-hidden p-0.5">
+                    <div class="chart-bar-fill h-full rounded-r-lg bg-[#D6C9B4] transition-all group-hover:brightness-105" data-width="40%"></div>
+                  </div>
+                  <span class="font-mono font-bold text-base sm:text-lg text-forest w-10">14%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bara 5: 5% -->
+            <div class="group">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
+                <div class="sm:w-72 sm:text-right text-sm sm:text-base font-medium text-ink shrink-0">
+                  Alte motive
+                </div>
+                <div class="flex-1 flex items-center gap-3">
+                  <div class="flex-1 bg-cream-dark rounded-r-xl h-10 sm:h-11 overflow-hidden p-0.5">
+                    <div class="chart-bar-fill h-full rounded-r-lg bg-[#C8B9A3] transition-all group-hover:brightness-105" data-width="14.3%"></div>
+                  </div>
+                  <span class="font-mono font-bold text-base sm:text-lg text-forest w-10">5%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Axă numerică jos (0, 5, 10, 15, 20, 25, 30, 35) ca în Slide 10 -->
+            <div class="hidden sm:flex items-center gap-5 pt-2">
+              <div class="w-72"></div>
+              <div class="flex-1 flex justify-between font-mono text-xs text-ink-muted pr-12 border-t border-cream-border pt-2">
+                <span>0</span>
+                <span>5</span>
+                <span>10</span>
+                <span>15</span>
+                <span>20</span>
+                <span>25</span>
+                <span>30</span>
+                <span>35</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 6. APLICAȚIA NOASTRĂ — SIMULATOR INTERACTIV (SLIDE 8) ==================== -->
+  <section id="aplicatie" class="relative py-20 sm:py-28 bg-cream-dark/70 border-y border-cream-border overflow-hidden">
+    <!-- Cerc verde închis stânga sus (ca în Slide 8) -->
+    <div class="hidden lg:block absolute -top-16 -left-16 w-44 h-44 rounded-full bg-forest"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="text-center lg:text-left reveal">
+        <span class="font-mono text-xs uppercase tracking-widest text-sage-dark block mb-2">Control Smart pe iOS & Android</span>
+        <h2 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold text-forest tracking-wide uppercase">
+          Aplicația Noastră
+        </h2>
+      </div>
+
+      <div class="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center reveal">
+        
+        <!-- Zona Două Telefoane Interactive (7 coloane) -->
+        <div class="lg:col-span-7 flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-7">
+          
+          <!-- TELEFON 1: Ecran Principal (Dashboard Plantele Mele) -->
+          <div class="w-[275px] bg-[#1E231A] rounded-[2.6rem] p-3 shadow-phone border-4 border-[#3A4233] shrink-0">
+            <div class="bg-[#FAF6F0] rounded-[2rem] overflow-hidden h-[500px] flex flex-col justify-between p-4 relative">
+              <!-- Dynamic Island -->
+              <div class="w-20 h-4 bg-[#1E231A] rounded-full mx-auto mb-2"></div>
+
+              <div>
+                <!-- Header Bună! -->
+                <div class="flex items-center justify-between bg-[#E6EFE0] rounded-2xl p-3">
+                  <div>
+                    <p class="font-bold text-sm text-forest leading-tight">Bună!<br />Plantele tale sunt bine.</p>
+                  </div>
+                  <!-- Mascota frunzuliță zâmbitoare din Slide 8 -->
+                  <div class="w-10 h-10 rounded-full bg-sage/30 flex items-center justify-center text-lg">
+                    🌱
+                  </div>
+                </div>
+
+                <!-- Status Rezervor & Senzori -->
+                <div class="mt-2.5 bg-white/80 border border-cream-border rounded-xl px-3 py-2 text-[11px] space-y-1">
+                  <div class="flex items-center justify-between text-ink">
+                    <span>💧 Rezervor apă:</span>
+                    <span id="tank-level-label" class="font-mono font-bold text-forest">85%</span>
+                  </div>
+                  <div class="flex items-center justify-between text-ink-muted">
+                    <span>ᛒ Senzori conectați</span>
+                    <span class="text-emerald-700 font-semibold">Bluetooth</span>
+                  </div>
+                </div>
+
+                <!-- Lista Plantele mele (Interactivă - click selectează planta în Telefonul 2) -->
+                <p class="font-bold text-xs text-forest mt-3 mb-2">Plantele mele <span class="font-normal text-[10px] text-ink-muted">(apasă pentru profil)</span></p>
+                
+                <div id="phone-plant-list" class="space-y-2">
+                  <!-- Generat dinamic prin JS -->
+                </div>
+              </div>
+
+              <!-- Buton Adaugă plantă + Bara navigație jos -->
+              <div>
+                <button onclick="openWaitlistModal()" class="w-full py-2 rounded-xl bg-[#3D7A47] hover:bg-forest text-white text-xs font-semibold transition-colors cursor-pointer">
+                  + Adaugă plantă
+                </button>
+                <div class="mt-2.5 pt-2 border-t border-cream-border flex justify-around text-[10px] text-ink-muted">
+                  <span class="text-forest font-bold">🏠 Acasă</span>
+                  <span>🌿 Plante</span>
+                  <span>🕒 Istoric</span>
+                  <span>⚙️ Setări</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TELEFON 2: Profil Plantă Interactiv (Udă acum, Slider umiditate, Cantitate apă) -->
+          <div class="w-[275px] bg-[#1E231A] rounded-[2.6rem] p-3 shadow-phone border-4 border-[#3A4233] shrink-0">
+            <div class="bg-[#FAF6F0] rounded-[2rem] overflow-hidden h-[500px] flex flex-col justify-between p-4 relative">
+              <!-- Dynamic Island -->
+              <div class="w-20 h-4 bg-[#1E231A] rounded-full mx-auto mb-2"></div>
+
+              <div>
+                <!-- Header Profil Plantă -->
+                <div class="flex items-center justify-between text-xs font-semibold text-forest pb-2 border-b border-cream-border">
+                  <span>‹ Profil Plantă: <strong id="detail-plant-name">Busuioc</strong></span>
+                  <span id="detail-plant-emoji">🌿</span>
+                </div>
+
+                <!-- Avatar Plantă & Status -->
+                <div class="mt-2.5 flex flex-col items-center">
+                  <div class="w-16 h-16 rounded-full bg-[#DCE8D3] border-2 border-[#3D7A47] flex items-center justify-center text-3xl shadow-inner relative">
+                    <span id="detail-plant-big-icon">🌿</span>
+                    <span class="w-3.5 h-3.5 rounded-full bg-[#3D7A47] border-2 border-white absolute bottom-0 right-0"></span>
+                  </div>
+                  <p class="text-[11px] font-medium text-ink-muted mt-1">
+                    Starea actuală: <strong id="detail-current-moisture" class="text-forest">58%</strong>
+                  </p>
+                </div>
+
+                <!-- Control Prag Umiditate Minimă -->
+                <div class="mt-3 bg-white/80 border border-cream-border rounded-xl p-2.5">
+                  <div class="flex justify-between text-[11px] font-semibold text-ink mb-1">
+                    <span>Prag umiditate minimă</span>
+                    <span id="threshold-val" class="font-mono text-forest">50%</span>
+                  </div>
+                  <input id="threshold-slider" type="range" min="20" max="80" value="50" class="w-full aqua-slider" oninput="updateThreshold(this.value)" />
+                  <p class="text-[10px] text-ink-muted mt-1">Udă automat când scade sub <span id="threshold-sub">50%</span></p>
+                </div>
+
+                <!-- Cantitate de apă per udare (- 50ml +) -->
+                <div class="mt-2 bg-white/80 border border-cream-border rounded-xl p-2.5">
+                  <p class="text-[11px] font-semibold text-ink text-center mb-1.5">Cantitate de apă per udare</p>
+                  <div class="flex items-center justify-between px-3">
+                    <button onclick="changeWaterAmount(-10)" class="w-7 h-7 rounded-lg bg-cream-dark hover:bg-sand text-forest font-bold text-sm cursor-pointer">−</button>
+                    <span id="water-amount-val" class="font-mono font-bold text-base text-forest">50ml</span>
+                    <button onclick="changeWaterAmount(10)" class="w-7 h-7 rounded-lg bg-cream-dark hover:bg-sand text-forest font-bold text-sm cursor-pointer">+</button>
+                  </div>
+                </div>
+
+                <!-- Buton Funcțional Udă Acum -->
+                <button id="water-now-btn" onclick="triggerManualWatering()" class="mt-2.5 w-full py-2.5 rounded-xl bg-[#3D7A47] hover:bg-forest active:scale-95 text-white text-xs font-bold shadow transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                  <span>💧 Udă acum</span>
+                </button>
+
+                <!-- Toggle Mod Automat -->
+                <div class="mt-2 flex items-center justify-between px-1">
+                  <span class="text-[11px] font-semibold text-ink">Mod automat</span>
+                  <button id="auto-mode-toggle" onclick="toggleAutoMode()" aria-label="Comută modul automat" class="w-10 h-5 rounded-full bg-[#3D7A47] p-0.5 transition-colors cursor-pointer flex items-center justify-end">
+                    <span class="w-4 h-4 rounded-full bg-white shadow"></span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="text-center text-[10px] text-ink-muted border-t border-cream-border pt-1.5">
+                Ultima udare: <span id="last-watered-text" class="font-medium text-forest">ieri, 18:30</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Coloana Dreaptă: Text Explicativ din Slide 8 (5 coloane) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-cream-card border border-cream-border rounded-3xl p-7 sm:p-8 shadow-botanical">
+            <div class="flex items-start gap-4">
+              <span class="w-2.5 h-2.5 rounded-full bg-forest mt-2 shrink-0"></span>
+              <div>
+                <h3 class="font-mono font-bold text-lg text-forest mb-2">Control personalizat</h3>
+                <p class="font-mono text-sm sm:text-[15px] text-ink-muted leading-relaxed">
+                  Setezi pragul de umiditate și cantitatea de apă pentru fiecare plantă, având la dispoziție moduri de udare automată sau manuală.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-cream-card border border-cream-border rounded-3xl p-7 sm:p-8 shadow-botanical">
+            <div class="flex items-start gap-4">
+              <span class="w-2.5 h-2.5 rounded-full bg-sage mt-2 shrink-0"></span>
+              <div>
+                <h3 class="font-mono font-bold text-lg text-forest mb-2">Monitorizare și alerte</h3>
+                <p class="font-mono text-sm sm:text-[15px] text-ink-muted leading-relaxed">
+                  Urmărești starea plantelor dintr-un singur ecran și primești notificări pe telefon când trebuie să reumpli rezervorul de apă.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-sage/15 border border-sage/30 text-xs font-mono text-forest flex items-center gap-3">
+            <span class="text-base">👆</span>
+            <span>Interacționează cu ecranele de telefon din stânga: selectează o plantă, ajustează mililitrii și apasă <strong>„Udă acum”</strong>!</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 7. GHID DE UTILIZARE AQUABLOOM (SLIDE 9) ==================== -->
+  <section id="ghid" class="relative py-20 sm:py-28 bg-cream overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      
+      <!-- Header Secțiune -->
+      <div class="max-w-3xl reveal">
+        <span class="font-mono text-xs uppercase tracking-widest text-sage-dark block mb-2">Ușor de instalat. Simplu de folosit.</span>
+        <h2 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold text-forest tracking-wide uppercase leading-tight">
+          Ghid de Utilizare<br />AquaBloom
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-ink-muted leading-relaxed">
+          Facilitează utilizarea produsului, reduce dificultățile de instalare și oferă experiențe cât mai plăcute utilizatorilor.
+        </p>
+      </div>
+
+      <!-- Grid cele 6 Pași din Posterul Slide-ului 9 -->
+      <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal">
+        
+        <!-- Pasul 1 -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl overflow-hidden shadow-botanical flex flex-col">
+          <div class="bg-sage-pale/60 px-6 py-3.5 border-b border-cream-border">
+            <h3 class="font-bold text-forest text-base">1. Pregătește dispozitivul</h3>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <ul class="space-y-2 text-sm text-ink leading-relaxed">
+              <li>• Despachetează aparatul</li>
+              <li>• Montează senzorii în sol</li>
+              <li>• Conectează furtunurile de distribuție</li>
+            </ul>
+            <div class="mt-5 pt-4 border-t border-cream-border/60 flex items-center justify-between text-xs font-mono text-sage-dark">
+              <span>TIMP ESTIMAT: 3 MIN</span>
+              <span>📦 SETUP</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pasul 2 -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl overflow-hidden shadow-botanical flex flex-col">
+          <div class="bg-sage-pale/60 px-6 py-3.5 border-b border-cream-border">
+            <h3 class="font-bold text-forest text-base">2. Conectează-l la aplicație</h3>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <ol class="space-y-2 text-sm text-ink leading-relaxed list-decimal list-inside">
+              <li>Descarcă aplicația AquaBloom din App Store sau Google Play.</li>
+              <li>Urmează pașii din aplicație pentru a conecta dispozitivul la Wi-Fi / Bluetooth.</li>
+            </ol>
+            <div class="mt-5 pt-4 border-t border-cream-border/60 flex items-center justify-between text-xs font-mono text-sage-dark">
+              <span>iOS & ANDROID</span>
+              <span>📱 CONECTARE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pasul 3 -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl overflow-hidden shadow-botanical flex flex-col">
+          <div class="bg-sage-pale/60 px-6 py-3.5 border-b border-cream-border">
+            <h3 class="font-bold text-forest text-base">3. Adaugă plantele tale</h3>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <p class="text-sm text-ink leading-relaxed">
+              • Introdu plantele din casa ta în aplicație și setează preferințele individuale de udare în funcție de specie.
+            </p>
+            <div class="mt-5 pt-4 border-t border-cream-border/60 flex items-center justify-between text-xs font-mono text-sage-dark">
+              <span>PROFIL PERSONALIZAT</span>
+              <span>🪴 PLANTE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pasul 4 -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl overflow-hidden shadow-botanical flex flex-col">
+          <div class="bg-sage-pale/60 px-6 py-3.5 border-b border-cream-border">
+            <h3 class="font-bold text-forest text-base">4. Monitorizează și primește notificări</h3>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <p class="text-sm text-ink leading-relaxed">
+              • Verifică nivelul de umiditate în timp real și primește notificări când planta trebuie udată sau rezervorul necesită reumplere.
+            </p>
+            <div class="mt-5 pt-4 border-t border-cream-border/60 flex items-center justify-between text-xs font-mono text-sage-dark">
+              <span>MONITORIZARE 24/7</span>
+              <span>🔔 ALERTE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pasul 5 -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl overflow-hidden shadow-botanical flex flex-col">
+          <div class="bg-sage-pale/60 px-6 py-3.5 border-b border-cream-border">
+            <h3 class="font-bold text-forest text-base">5. Lasă AquaBloom să ude automat</h3>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <p class="text-sm text-ink leading-relaxed">
+              Aparatul va porni udarea automat când solul este uscat. Tu doar te bucuri de plante sănătoase și pline de viață!
+            </p>
+            <div class="mt-5 pt-4 border-t border-cream-border/60 flex items-center justify-between text-xs font-mono text-sage-dark">
+              <span>100% AUTOMAT</span>
+              <span>💧 IRIGARE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pasul 6 -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl overflow-hidden shadow-botanical flex flex-col">
+          <div class="bg-sage-pale/60 px-6 py-3.5 border-b border-cream-border">
+            <h3 class="font-bold text-forest text-base">6. Ajustează setările după nevoie</h3>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <p class="text-sm text-ink leading-relaxed">
+              Poți modifica oricând programul de udare, sensibilitatea senzorilor sau poți configura alerte personalizate.
+            </p>
+            <div class="mt-5 pt-4 border-t border-cream-border/60 flex items-center justify-between text-xs font-mono text-sage-dark">
+              <span>CONTROL FLEXIBIL</span>
+              <span>⚙️ CALIBRARE</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Casetă Sfaturi Utile + Card Brand (ca în partea de jos a posterului din Slide 9) -->
+      <div class="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 reveal">
+        <div class="lg:col-span-7 bg-[#E5E3C8] border border-sage/40 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <div class="w-14 h-14 rounded-2xl bg-forest text-cream flex items-center justify-center text-2xl shrink-0">
+            💡
+          </div>
+          <div>
+            <h4 class="font-bold text-lg text-forest mb-2">Sfaturi utile pentru rezultate optime:</h4>
+            <ul class="space-y-1.5 text-sm text-ink">
+              <li class="flex items-center gap-2"><span class="text-forest font-bold">✓</span> Plasează senzorii aproape de rădăcinile plantei</li>
+              <li class="flex items-center gap-2"><span class="text-forest font-bold">✓</span> Folosește apă curată în rezervor</li>
+              <li class="flex items-center gap-2"><span class="text-forest font-bold">✓</span> Verifică periodic nivelul apei</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 bg-forest text-cream rounded-3xl p-6 sm:p-8 flex flex-col justify-center">
+          <div class="flex items-center gap-3 mb-2">
+            <span class="text-2xl">🌱</span>
+            <span class="font-hero font-bold text-2xl tracking-wide">AquaBloom</span>
+          </div>
+          <p class="text-cream/85 italic text-sm sm:text-base">
+            „Grijă inteligentă pentru plantele tale! Plante fericite. Fără efort.”
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== 8. LIMITE ȘI CONDIȚII DE ACCES (SLIDE 5) ==================== -->
+  <section id="conditii" class="relative py-20 sm:py-28 bg-cream-dark/60 border-y border-cream-border overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      
+      <!-- Titlu cu roți dințate SVG (ca în Slide 5) -->
+      <div class="flex flex-col md:flex-row items-center justify-center gap-6 text-center md:text-left reveal">
+        <svg class="w-24 h-24 text-forest shrink-0" viewBox="0 0 100 100" fill="currentColor">
+          <!-- Roată mare stânga -->
+          <path d="M35 20L38 13H44L47 20L53 23L60 19L64 23L60 30L63 36L70 39V45L63 48L60 54L64 61L60 65L53 61L47 64L44 71H38L35 64L29 61L22 65L18 61L22 54L19 48L12 45V39L19 36L22 30L18 23L22 19L29 23L35 20ZM41 31C35.5 31 31 35.5 31 41C31 46.5 35.5 51 41 51C46.5 51 51 46.5 51 41C51 35.5 46.5 31 41 31Z" fill="#33451E"/>
+          <!-- Roată salvie dreapta -->
+          <circle cx="74" cy="30" r="14" stroke="#7B885A" stroke-width="5" stroke-dasharray="5 3" fill="none"/>
+          <!-- Roată mică jos -->
+          <circle cx="62" cy="74" r="10" stroke="#33451E" stroke-width="4" stroke-dasharray="4 2.5" fill="none"/>
+        </svg>
+
+        <h2 class="font-serif text-3xl sm:text-5xl font-semibold text-forest tracking-wide uppercase leading-tight">
+          Limite și Condiții<br />de Acces
+        </h2>
+      </div>
+
+      <!-- Cele două coloane (Cerințe de sistem & montaj / Conectivitate) -->
+      <div class="mt-14 grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 reveal">
+        
+        <!-- Coloana 1: Cerințe de sistem & montaj -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl p-8 sm:p-10 shadow-botanical">
+          <div class="flex items-center gap-3 mb-6">
+            <svg class="w-8 h-8 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>
+            </svg>
+            <h3 class="font-mono font-bold text-lg sm:text-xl text-forest uppercase tracking-wide">
+              Cerințe de Sistem & Montaj
+            </h3>
+          </div>
+
+          <ol class="space-y-5 font-mono text-sm text-ink leading-relaxed">
+            <li>
+              <strong class="text-forest">1. Alimentare & Resurse:</strong> Necesită conexiune la o sursă de energie electrică și un rezervor cu apă.
+            </li>
+            <li>
+              <strong class="text-forest">2. Senzori:</strong> Fiecare plantă are nevoie de un senzor poziționat corect în substrat.
+            </li>
+            <li>
+              <strong class="text-forest">3. Calibrare:</strong> Pragul de umiditate trebuie setat individual, în funcție de specie, tipul de substrat și dimensiunea ghiveciului.
+            </li>
+          </ol>
+        </div>
+
+        <!-- Coloana 2: Conectivitate -->
+        <div class="bg-cream-card border border-cream-border rounded-3xl p-8 sm:p-10 shadow-botanical">
+          <div class="flex items-center gap-3 mb-6">
+            <svg class="w-8 h-8 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7l10 10-5 5V2l5 5L7 17"/>
+            </svg>
+            <h3 class="font-mono font-bold text-lg sm:text-xl text-forest uppercase tracking-wide">
+              Conectivitate
+            </h3>
+          </div>
+
+          <ol class="space-y-5 font-mono text-sm text-ink leading-relaxed">
+            <li>
+              <strong class="text-forest">1. Bluetooth:</strong> Utilizat pentru configurarea inițială.
+            </li>
+            <li>
+              <strong class="text-forest">2. Wi-Fi:</strong> Utilizat pentru monitorizarea de la distanță (în varianta conectată).
+            </li>
+            <li>
+              <strong class="text-forest">3. Dependență de rețea:</strong> În lipsa alimentării electrice sau a semnalului Wi-Fi/Bluetooth, funcțiile de monitorizare la distanță devin indisponibile.
+            </li>
+          </ol>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 9. OBIECTIVE SMART & PROMOVAREA ONLINE (SLIDE 6 & 7) ==================== -->
+  <section id="comunitate" class="relative py-20 sm:py-28 bg-cream overflow-hidden">
+    <!-- Cerc decorativ verde stânga sus (ca în Slide 6) -->
+    <div class="hidden lg:block absolute -top-16 -left-16 w-44 h-44 rounded-full bg-forest"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      
+      <!-- PART A: OBIECTIVE SMART (SLIDE 6) -->
+      <div class="reveal">
+        <div class="flex items-center justify-center gap-4 sm:gap-6 mb-12">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-cream-dark border border-cream-border flex items-center justify-center text-forest">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+            </svg>
+          </div>
+          <h2 class="font-serif text-3xl sm:text-5xl lg:text-6xl font-semibold text-forest tracking-wide uppercase text-center">
+            Obiective SMART
+          </h2>
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-cream-dark border border-cream-border flex items-center justify-center text-forest">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3C12 3 6 10.5 6 15a6 6 0 0012 0c0-4.5-6-12-6-12z"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Obiectiv 1 -->
+          <div class="bg-cream-card border border-cream-border rounded-3xl p-8 sm:p-10 shadow-botanical">
+            <div class="inline-block px-3.5 py-1 rounded-full bg-forest text-cream font-mono text-xs font-bold mb-4">
+              6 SĂPTĂMÂNI • 5.000+ PERSOANE
+            </div>
+            <h3 class="font-mono font-bold text-lg sm:text-xl text-forest uppercase mb-4">
+              Obiectivul 1 – Creșterea notorietății produsului
+            </h3>
+            <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
+              În decurs de <strong>6 săptămâni</strong> de la lansarea campaniei, ne propunem să facem cunoscut produsul AquaBloom și funcționalitățile pe care acesta le oferă publicului, prin distribuirea afișului promoțional și publicarea frecventă pe <strong>Instagram, Facebook și TikTok</strong>. Obiectivul este atingerea unui număr de cel puțin <strong>5.000 de persoane</strong> prin intermediul materialelor și videoclipurilor publicate.
+            </p>
+          </div>
+
+          <!-- Obiectiv 2 -->
+          <div class="bg-cream-card border border-cream-border rounded-3xl p-8 sm:p-10 shadow-botanical">
+            <div class="inline-block px-3.5 py-1 rounded-full bg-sage text-cream font-mono text-xs font-bold mb-4">
+              500+ MEMBRI • BONUS SENZORI
+            </div>
+            <h3 class="font-mono font-bold text-lg sm:text-xl text-forest uppercase mb-4">
+              Obiectivul 2 – Informarea publicului
+            </h3>
+            <p class="text-sm sm:text-base text-ink-muted leading-relaxed">
+              Într-un interval de <strong>6 săptămâni</strong>, ne propunem să aducem cel puțin <strong>500 de persoane</strong> în comunitatea AquaBloom prin oferirea unui <strong>pachet de senzori gratuit</strong> pentru primul sistem achiziționat și un <strong>cupon de reducere special</strong> ce poate fi folosit în lanțurile partenere de magazine naturiste. Vom monitoriza numărul de noi clienți prin conturile create în aplicația noastră.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PART B: PROMOVAREA ÎN MEDIUL ONLINE (SLIDE 7) -->
+      <div class="mt-20 sm:mt-24 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center reveal">
+        
+        <!-- Mockup-uri TikTok & Instagram @aquabloom.ro (7 coloane) -->
+        <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          
+          <!-- Mockup TikTok -->
+          <div class="bg-[#1C2119] text-white rounded-3xl overflow-hidden shadow-phone border border-ink/20 flex flex-col justify-between h-[430px] relative p-4">
+            <!-- Top tabs TikTok -->
+            <div class="flex items-center justify-between text-xs text-white/80 font-semibold z-10">
+              <span class="px-2 py-0.5 border border-white/40 rounded text-[10px]">LIVE</span>
+              <div class="flex gap-3">
+                <span class="opacity-60">Following</span>
+                <span class="underline underline-offset-4 font-bold text-white">For You</span>
+              </div>
+              <span>🔍</span>
+            </div>
+
+            <!-- Scenă vizuală produs -->
+            <div class="my-auto text-center py-6 bg-gradient-to-b from-sage/20 to-forest/40 rounded-2xl border border-white/10 p-4">
+              <div class="w-16 h-16 mx-auto rounded-2xl bg-cream text-forest flex items-center justify-center text-3xl shadow-md mb-3">
+                🪴
+              </div>
+              <p class="font-hero text-lg text-cream">AquaBloom Demo</p>
+              <p class="text-xs text-white/75 mt-1">Umiditate 68% → Udare automată 50ml</p>
+            </div>
+
+            <!-- Caption & Buton TikTok -->
+            <div class="z-10">
+              <span class="inline-block bg-amber-500/90 text-black font-bold text-[10px] px-2 py-0.5 rounded mb-1.5">
+                🛒 Product Link
+              </span>
+              <p class="font-bold text-sm">@aquabloom.ro</p>
+              <p class="text-xs text-white/85 leading-snug mt-0.5">
+                Uită de grija udării! 🌱 Aqua Bloom are grijă de plantele tale. 💧 #SmartGardening #Plants #HomeTech
+              </p>
+              <div class="mt-3 pt-2 border-t border-white/15 flex justify-between text-[10px] text-white/70 font-mono">
+                <span>TIKTOK OFFICIAL</span>
+                <span>❤️ 1.4K • 💬 86</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mockup Instagram Profile -->
+          <div class="bg-white text-ink rounded-3xl overflow-hidden shadow-phone border border-cream-border flex flex-col justify-between h-[430px] p-4">
+            <div>
+              <!-- Header profil IG -->
+              <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                <span class="font-bold text-xs">aquabloom.ro</span>
+                <span class="px-2.5 py-0.5 rounded-md bg-sky-500 text-white text-[11px] font-semibold">Follow</span>
+              </div>
+
+              <!-- Avatar & Stats -->
+              <div class="flex items-center gap-3 mt-3">
+                <div class="w-14 h-14 rounded-full bg-cream border-2 border-sage flex items-center justify-center shrink-0">
+                  <span class="text-2xl">💧</span>
+                </div>
+                <div class="flex-1 grid grid-cols-3 text-center text-xs">
+                  <div><strong class="block text-sm">147</strong><span class="text-[10px] text-gray-500">Posts</span></div>
+                  <div><strong class="block text-sm">1.2K</strong><span class="text-[10px] text-gray-500">Followers</span></div>
+                  <div><strong class="block text-sm">380</strong><span class="text-[10px] text-gray-500">Following</span></div>
+                </div>
+              </div>
+
+              <!-- Bio exact ca în Slide 7 -->
+              <div class="mt-2.5 text-[11px] leading-snug">
+                <p class="font-bold text-forest">Aqua Bloom | Smart Plant Watering</p>
+                <p class="text-gray-400 text-[10px]">Product/Service</p>
+                <p>🌿 Smart technology for always-green plants.</p>
+                <p>📊 Monitors soil and calculates needs.</p>
+                <p>📱 Remote Bluetooth control.</p>
+                <p>🚚 Shipping across Romania.</p>
+                <p class="text-forest font-semibold">🔗 Shop now: aquabloom.ro</p>
+              </div>
+
+              <!-- Highlights IG (How to Use, App, Benefits, Reviews, FAQ) -->
+              <div class="mt-3 grid grid-cols-5 gap-1 text-center text-[9px] text-gray-600">
+                <div><div class="w-8 h-8 mx-auto rounded-full bg-forest text-white flex items-center justify-center mb-0.5">🌿</div>How to Use</div>
+                <div><div class="w-8 h-8 mx-auto rounded-full bg-sage text-white flex items-center justify-center mb-0.5">📱</div>App</div>
+                <div><div class="w-8 h-8 mx-auto rounded-full bg-sky-100 text-sky-700 flex items-center justify-center mb-0.5">💧</div>Benefits</div>
+                <div><div class="w-8 h-8 mx-auto rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mb-0.5">⭐</div>Reviews</div>
+                <div><div class="w-8 h-8 mx-auto rounded-full bg-stone-200 text-stone-700 flex items-center justify-center mb-0.5">❓</div>FAQ</div>
+              </div>
+            </div>
+
+            <!-- Grid poze IG -->
+            <div class="grid grid-cols-3 gap-1 mt-2">
+              <div class="h-14 rounded bg-cream-dark flex items-center justify-center text-[9px] text-center p-1 font-medium text-forest">Your plants' best friend</div>
+              <div class="h-14 rounded bg-sage/25 flex items-center justify-center text-[9px] text-center p-1 font-medium text-forest">Everything at your fingertips</div>
+              <div class="h-14 rounded bg-cream-dark flex items-center justify-center text-[9px] text-center p-1 font-medium text-forest">Connect from anywhere</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Coloana Dreaptă: Promovarea în Mediul Online (5 coloane) -->
+        <div class="lg:col-span-5">
+          <h3 class="font-serif text-3xl sm:text-4xl font-semibold text-forest tracking-wide uppercase leading-tight mb-5">
+            Promovarea în<br />Mediul Online
+          </h3>
+          <p class="text-sm sm:text-base text-ink-muted mb-4">
+            Prin intermediul paginilor noastre ne propunem să:
+          </p>
+          <ul class="space-y-2.5 text-sm sm:text-base text-ink mb-6">
+            <li class="flex items-start gap-2.5">
+              <span class="w-2 h-2 rounded-full bg-forest mt-2 shrink-0"></span>
+              <span><strong>Prezentăm produsul</strong> AquaBloom și principalele sale funcționalități.</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <span class="w-2 h-2 rounded-full bg-forest mt-2 shrink-0"></span>
+              <span><strong>Explicăm</strong>, prin imagini și videoclipuri, modul în care funcționează sistemul de irigație automată.</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <span class="w-2 h-2 rounded-full bg-forest mt-2 shrink-0"></span>
+              <span><strong>Atragem potențiali</strong> clienți și creștem vizibilitatea brandului.</span>
+            </li>
+          </ul>
+
+          <div class="bg-cream-card border border-cream-border rounded-2xl p-5">
+            <p class="font-mono font-bold text-xs uppercase tracking-wider text-forest mb-3">Tipuri de conținut:</p>
+            <ul class="space-y-2 text-sm text-ink-muted">
+              <li>• Postări de prezentare a produsului.</li>
+              <li>• Videoclipuri demonstrative și Reels / TikTok.</li>
+              <li>• Carusele explicative despre funcționarea aparatului.</li>
+              <li>• Sfaturi utile pentru îngrijirea plantelor.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 10. SECȚIUNE INTERACTIVĂ: LISTĂ DE AȘTEPTARE / DEMO ==================== -->
+  <section id="inscriere" class="relative py-20 sm:py-24 bg-cream-dark border-t border-cream-border">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 reveal">
+      <div class="bg-cream-card border-2 border-forest/20 rounded-[2rem] p-8 sm:p-12 shadow-botanical text-center">
+        <span class="inline-block px-4 py-1.5 rounded-full bg-sage text-cream font-mono text-xs font-bold uppercase tracking-wider mb-4">
+          Ofertă de Lansare • Comunitatea AquaBloom
+        </span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-semibold text-forest uppercase tracking-wide">
+          Alătură-te Comunității
+        </h2>
+        <p class="mt-4 text-sm sm:text-base text-ink-muted max-w-2xl mx-auto leading-relaxed">
+          Înscrie-te pe lista de așteptare sau solicită o demonstrație live. Primii <strong>500 de membri</strong> primesc un <strong>pachet de senzori gratuit</strong> la achiziția primului sistem și un <strong>cupon de reducere</strong> în magazinele naturiste partenere.
+        </p>
+
+        <!-- Formular Inline -->
+        <form id="inline-waitlist-form" onsubmit="handleWaitlistSubmit(event, 'inline')" class="mt-8 max-w-xl mx-auto space-y-4 text-left">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-mono text-xs font-bold text-forest uppercase mb-1.5">Nume complet</label>
+              <input type="text" required placeholder="Ex: Maria Popescu" class="w-full px-4 py-3 rounded-xl bg-cream border border-cream-border focus:border-forest focus:outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block font-mono text-xs font-bold text-forest uppercase mb-1.5">Adresă de email</label>
+              <input type="email" required placeholder="maria@exemplu.ro" class="w-full px-4 py-3 rounded-xl bg-cream border border-cream-border focus:border-forest focus:outline-none text-sm" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-mono text-xs font-bold text-forest uppercase mb-1.5">Ce te interesează?</label>
+            <select class="w-full px-4 py-3 rounded-xl bg-cream border border-cream-border focus:border-forest focus:outline-none text-sm">
+              <option value="waitlist">Înscriere pe lista de așteptare (Pachet senzori gratuit + Cupon)</option>
+              <option value="demo">Solicitare demonstrație live AquaBloom</option>
+              <option value="both">Ambele (Listă de așteptare + Demonstrație)</option>
+            </select>
+          </div>
+
+          <button type="submit" class="w-full bg-forest hover:bg-forest-dark text-cream font-bold py-4 rounded-full shadow-md transition-all cursor-pointer text-sm sm:text-base">
+            Confirmă înscrierea și rezervă bonusul 🌱
+          </button>
+        </form>
+
+        <!-- Mesaj Confirmare Inline -->
+        <div id="inline-success-msg" class="hidden mt-6 p-5 rounded-2xl bg-sage/20 border border-sage text-forest">
+          <p class="font-bold text-base">Mulțumim pentru înscriere! 🌿</p>
+          <p class="text-sm mt-1">Locul tău în comunitatea <strong>AquaBloom</strong> a fost rezervat, alături de codul promoțional pentru pachetul de senzori gratuit.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="bg-forest text-cream pt-16 pb-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-cream/15">
+        
+        <!-- Brand -->
+        <div class="lg:col-span-2">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-sage flex items-center justify-center text-cream font-bold text-xl">
+              💧
+            </div>
+            <div>
+              <span class="font-hero font-bold text-2xl tracking-wide block leading-none">AQUABLOOM</span>
+              <span class="font-mono text-xs uppercase tracking-widest text-sage-pale">Happier Plants • Green Nest</span>
+            </div>
+          </div>
+          <p class="text-sm text-cream/80 max-w-md leading-relaxed">
+            Sistem inteligent de monitorizare a umidității solului și de irigare automată a plantelor de interior. Dezvoltat de startup-ul tehnologic <strong>Green Nest</strong>.
+          </p>
+        </div>
+
+        <!-- Linkuri Rapide -->
+        <div>
+          <h4 class="font-mono text-xs uppercase tracking-widest text-sage-pale mb-4">Navigare</h4>
+          <ul class="space-y-2.5 text-sm text-cream/85">
+            <li><a href="#despre" class="hover:text-white transition-colors">Despre Noi & Produs</a></li>
+            <li><a href="#tehnologie" class="hover:text-white transition-colors">Schemă Tehnică Bluetooth</a></li>
+            <li><a href="#aplicatie" class="hover:text-white transition-colors">Aplicația AquaBloom</a></li>
+            <li><a href="#ghid" class="hover:text-white transition-colors">Ghid de Utilizare</a></li>
+            <li><a href="#conditii" class="hover:text-white transition-colors">Limite și Condiții</a></li>
+          </ul>
+        </div>
+
+        <!-- Echipa Proiectului -->
+        <div>
+          <h4 class="font-mono text-xs uppercase tracking-widest text-sage-pale mb-4">Echipa Green Nest</h4>
+          <ul class="space-y-1.5 font-mono text-xs text-cream/80">
+            <li>Albuleț Amalia-Cristiana</li>
+            <li>Dunka Iulia-Ecaterina</li>
+            <li>Niță Denisa Ștefania</li>
+            <li>Saru Ioan</li>
+          </ul>
+          <p class="mt-4 font-mono text-xs text-sage-pale">@aquabloom.ro</p>
+        </div>
+
+      </div>
+
+      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-cream/65 font-mono">
+        <p>© 2026 Green Nest — AquaBloom. Toate drepturile rezervate.</p>
+        <p>Smart Technology for Always-Green Plants 🌿</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== MODAL INTERACTIV LISTĂ AȘTEPTARE / DEMO ==================== -->
+  <div id="waitlist-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-cream-card border border-cream-border rounded-3xl max-w-md w-full p-7 sm:p-8 shadow-2xl relative animate-fadeIn">
+      <button onclick="closeWaitlistModal()" aria-label="Închide fereastra" class="absolute top-5 right-5 w-9 h-9 rounded-full bg-cream-dark hover:bg-sand text-forest flex items-center justify-center font-bold cursor-pointer">
+        ✕
+      </button>
+
+      <span class="inline-block px-3 py-1 rounded-full bg-sage/20 text-forest font-mono text-[11px] font-bold uppercase mb-3">
+        Green Nest • AquaBloom
+      </span>
+      <h3 id="modal-title" class="font-serif text-2xl sm:text-3xl font-semibold text-forest uppercase">
+        Înscrie-te pe Lista de Așteptare
+      </h3>
+      <p class="text-xs sm:text-sm text-ink-muted mt-2 leading-relaxed">
+        Primești acces prioritar, un <strong>pachet de senzori gratuit</strong> la primul sistem și un <strong>cupon de reducere</strong> în magazinele naturiste partenere.
+      </p>
+
+      <form id="modal-waitlist-form" onsubmit="handleWaitlistSubmit(event, 'modal')" class="mt-5 space-y-3.5">
+        <div>
+          <label class="block font-mono text-[11px] font-bold text-forest uppercase mb-1">Nume</label>
+          <input type="text" required placeholder="Numele tău" class="w-full px-3.5 py-2.5 rounded-xl bg-cream border border-cream-border focus:border-forest focus:outline-none text-sm" />
+        </div>
+        <div>
+          <label class="block font-mono text-[11px] font-bold text-forest uppercase mb-1">Email</label>
+          <input type="email" required placeholder="email@exemplu.ro" class="w-full px-3.5 py-2.5 rounded-xl bg-cream border border-cream-border focus:border-forest focus:outline-none text-sm" />
+        </div>
+        <div>
+          <label class="block font-mono text-[11px] font-bold text-forest uppercase mb-1">Tip solicitare</label>
+          <select id="modal-type-select" class="w-full px-3.5 py-2.5 rounded-xl bg-cream border border-cream-border focus:border-forest focus:outline-none text-sm">
+            <option value="waitlist">Listă de așteptare + Pachet senzori gratuit</option>
+            <option value="demo">Solicită o demonstrație live</option>
+          </select>
+        </div>
+        <button type="submit" class="w-full bg-forest hover:bg-forest-dark text-cream font-bold py-3 rounded-full shadow transition-all cursor-pointer text-sm mt-2">
+          Trimite solicitarea
+        </button>
+      </form>
+
+      <div id="modal-success-msg" class="hidden mt-5 p-4 rounded-2xl bg-sage/20 border border-sage text-forest text-sm">
+        <strong>Felicitări! 🌱</strong> Solicitarea ta a fost înregistrată. Te vom contacta în curând cu detaliile despre demonstrație și bonusul AquaBloom.
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT INTERACTIV ==================== -->
+  <script>
+    // 1. Mobile Menu Toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+    document.querySelectorAll('.mobile-link').forEach(link => {
+      link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+    });
+
+    // 2. Date & Logică Diagramă Tehnică CAD Interactivă (Slide 3)
+    const cadParts = {
+      1: {
+        badge: 'COMPONENTA 01 / 04',
+        title: 'Rezervor de Apă & Pompă Submersibilă',
+        desc: 'Rezervorul integrat dispune de o pompă submersibilă silențioasă, filtru de impurități și baterie reîncărcabilă cu port dedicat. Asigură autonomie extinsă pentru udarea simultană a mai multor ghivece.',
+        specs: [
+          ['Pompă:', 'Submersibilă silențioasă'],
+          ['Protecție:', 'Filtru apă & nivel rezidual'],
+          ['Alimentare:', 'Baterie reîncărcabilă / Rețea']
+        ]
+      },
+      2: {
+        badge: 'COMPONENTA 02 / 04',
+        title: 'Unitate Inteligentă de Control (Smart Control Unit)',
+        desc: 'Creierul sistemului AquaBloom: include microcontroler central, modul Bluetooth Low Energy și ecran LCD care afișează nivelul bateriei (85%) și citirile în timp real ale senzorilor (ex: 68% → 50ml).',
+        specs: [
+          ['Afișaj:', 'Ecran LCD cu status baterie & senzori'],
+          ['Conectivitate:', 'Bluetooth & Wi-Fi'],
+          ['Procesare:', 'Microcontroler central']
+        ]
+      },
+      3: {
+        badge: 'COMPONENTA 03 / 04',
+        title: 'Distribuitor cu Valve (Valve Distributor)',
+        desc: 'Direcționează fluxul de apă cu precizie milimetrică către fiecare ghiveci în parte prin tuburile de distribuție, astfel încât fiecare plantă să primească exact cantitatea configurată.',
+        specs: [
+          ['Control flux:', 'Valve individuale de distribuție'],
+          ['Traseu:', 'Tuburi dedicate per ghiveci'],
+          ['Precizie:', 'Dozare exactă (ml)']
+        ]
+      },
+      4: {
+        badge: 'COMPONENTA 04 / 04',
+        title: 'Senzor de Umiditate (Capacitive Probe)',
+        desc: 'Sondă de înaltă precizie introdusă în substrat lângă rădăcini. Dispune de electrod placat cu cupru și strat izolator epoxidic pentru durabilitate și măsurători exacte ale umidității.',
+        specs: [
+          ['Tehnologie:', 'Sensing capacitiv / rezistiv'],
+          ['Protecție:', 'Strat izolator epoxidic'],
+          ['Electrod:', 'Placare cu cupru anticorozivă']
+        ]
+      }
+    };
+
+    function selectCadPart(id) {
+      const data = cadParts[id];
+      if (!data) return;
+
+      document.getElementById('cad-badge').textContent = data.badge;
+      document.getElementById('cad-title').textContent = data.title;
+      document.getElementById('cad-desc').textContent = data.desc;
+
+      const specsContainer = document.getElementById('cad-specs');
+      specsContainer.innerHTML = data.specs.map(([k, v]) => `
+        <div class="flex justify-between">
+          <span>${k}</span>
+          <span class="font-bold text-forest">${v}</span>
+        </div>
+      `).join('');
+
+      // Actualizare stil tab-uri
+      document.querySelectorAll('.cad-tab').forEach((btn, idx) => {
+        if (idx + 1 === id) {
+          btn.classList.remove('bg-cream-card', 'text-forest', 'border-cream-border');
+          btn.classList.add('bg-forest', 'text-cream', 'border-forest');
+        } else {
+          btn.classList.remove('bg-forest', 'text-cream', 'border-forest');
+          btn.classList.add('bg-cream-card', 'text-forest', 'border-cream-border');
+        }
+      });
+    }
+
+    // 3. Simulator Interactiv Aplicație Mobilă (Slide 8)
+    const plantsState = [
+      { id: 0, name: 'Busuioc', moisture: 58, threshold: 50, waterMl: 50, auto: true, emoji: '🌿', lastWatered: 'ieri, 18:30' },
+      { id: 1, name: 'Iederă', moisture: 42, threshold: 45, waterMl: 40, auto: true, emoji: '🍃', lastWatered: 'acum 2 zile' },
+      { id: 2, name: 'Rozmarin', moisture: 21, threshold: 35, waterMl: 60, auto: true, emoji: '🪴', lastWatered: 'acum 4 zile' }
+    ];
+    let selectedPlantIdx = 0;
+    let tankLevel = 85;
+
+    function getPlantStatusBadge(plant) {
+      if (plant.moisture >= plant.threshold) {
+        return { label: 'Optim', bg: 'bg-[#DCE8D3]', badgeBg: 'bg-[#3D7A47] text-white' };
+      } else if (plant.moisture >= plant.threshold - 10) {
+        return { label: 'De verificat', bg: 'bg-[#F5E9C6]', badgeBg: 'bg-[#D4A024] text-white' };
+      } else {
+        return { label: 'Necesită apă', bg: 'bg-[#F5D6D2]', badgeBg: 'bg-[#C94A38] text-white' };
+      }
+    }
+
+    function renderPhoneUI() {
+      const listEl = document.getElementById('phone-plant-list');
+      listEl.innerHTML = plantsState.map((plant, idx) => {
+        const status = getPlantStatusBadge(plant);
+        const isSelected = idx === selectedPlantIdx;
+        return `
+          <div onclick="selectPhonePlant(${idx})" class="${status.bg} ${isSelected ? 'ring-2 ring-forest' : 'opacity-90 hover:opacity-100'} rounded-xl p-2.5 flex items-center justify-between cursor-pointer transition-all">
+            <div>
+              <p class="font-bold text-xs text-ink">${plant.name}</p>
+              <p class="text-[10px] text-ink-muted">Umiditate: <strong>${plant.moisture}%</strong></p>
+              <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${status.badgeBg}">${status.label}</span>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-white/70 flex items-center justify-center text-xl shadow-xs">
+              ${plant.emoji}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Actualizare Telefon 2 (Profil Plantă)
+      const current = plantsState[selectedPlantIdx];
+      document.getElementById('detail-plant-name').textContent = current.name;
+      document.getElementById('detail-plant-emoji').textContent = current.emoji;
+      document.getElementById('detail-plant-big-icon').textContent = current.emoji;
+      document.getElementById('detail-current-moisture').textContent = `${current.moisture}%`;
+      document.getElementById('threshold-slider').value = current.threshold;
+      document.getElementById('threshold-val').textContent = `${current.threshold}%`;
+      document.getElementById('threshold-sub').textContent = `${current.threshold}%`;
+      document.getElementById('water-amount-val').textContent = `${current.waterMl}ml`;
+      document.getElementById('last-watered-text').textContent = current.lastWatered;
+      document.getElementById('tank-level-label').textContent = `${tankLevel}%`;
+
+      const toggleBtn = document.getElementById('auto-mode-toggle');
+      if (current.auto) {
+        toggleBtn.classList.remove('bg-gray-300', 'justify-start');
+        toggleBtn.classList.add('bg-[#3D7A47]', 'justify-end');
+      } else {
+        toggleBtn.classList.remove('bg-[#3D7A47]', 'justify-end');
+        toggleBtn.classList.add('bg-gray-300', 'justify-start');
+      }
+    }
+
+    function selectPhonePlant(idx) {
+      selectedPlantIdx = idx;
+      renderPhoneUI();
+    }
+
+    function updateThreshold(val) {
+      plantsState[selectedPlantIdx].threshold = parseInt(val, 10);
+      renderPhoneUI();
+    }
+
+    function changeWaterAmount(delta) {
+      const current = plantsState[selectedPlantIdx];
+      current.waterMl = Math.min(200, Math.max(10, current.waterMl + delta));
+      renderPhoneUI();
+    }
+
+    function toggleAutoMode() {
+      plantsState[selectedPlantIdx].auto = !plantsState[selectedPlantIdx].auto;
+      renderPhoneUI();
+    }
+
+    function triggerManualWatering() {
+      const current = plantsState[selectedPlantIdx];
+      const btn = document.getElementById('water-now-btn');
+      btn.innerHTML = '<span>💦 Se udă...</span>';
+
+      setTimeout(() => {
+        const boost = Math.max(8, Math.round(current.waterMl / 5));
+        current.moisture = Math.min(95, current.moisture + boost);
+        current.lastWatered = 'chiar acum';
+        tankLevel = Math.max(15, tankLevel - 2);
+        btn.innerHTML = '<span>✓ Udat cu succes!</span>';
+        renderPhoneUI();
+
+        setTimeout(() => {
+          btn.innerHTML = '<span>💧 Udă acum</span>';
+        }, 1200);
+      }, 450);
+    }
+
+    // 4. Modal & Formulare Listă de Așteptare
+    function openWaitlistModal(type = 'waitlist') {
+      const modal = document.getElementById('waitlist-modal');
+      const select = document.getElementById('modal-type-select');
+      const title = document.getElementById('modal-title');
+      document.getElementById('modal-success-msg').classList.add('hidden');
+      document.getElementById('modal-waitlist-form').classList.remove('hidden');
+
+      if (type === 'demo') {
+        select.value = 'demo';
+        title.textContent = 'Solicită o Demonstrație';
+      } else {
+        select.value = 'waitlist';
+        title.textContent = 'Înscrie-te pe Lista de Așteptare';
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeWaitlistModal() {
+      document.getElementById('waitlist-modal').classList.add('hidden');
+    }
+
+    function handleWaitlistSubmit(event, source) {
+      event.preventDefault();
+      if (source === 'inline') {
+        document.getElementById('inline-waitlist-form').classList.add('hidden');
+        document.getElementById('inline-success-msg').classList.remove('hidden');
+      } else {
+        document.getElementById('modal-waitlist-form').classList.add('hidden');
+        document.getElementById('modal-success-msg').classList.remove('hidden');
+      }
+    }
+
+    // 5. IntersectionObserver pentru Animații la Scroll & Grafic Bare
+    document.addEventListener('DOMContentLoaded', () => {
+      renderPhoneUI();
+
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            // Dacă este secțiunea graficului, animăm barele
+            if (entry.target.id === 'chart-section') {
+              entry.target.querySelectorAll('.chart-bar-fill').forEach(bar => {
+                bar.style.width = bar.getAttribute('data-width');
+              });
+            }
+          }
+        });
+      }, { threshold: 0.12 });
+
+      document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+    });
+  </script>
+</body>
+</html>
